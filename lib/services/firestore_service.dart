@@ -4,43 +4,6 @@ import '../models/app_models.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // ── Modules ──────────────────────────────────────────────────────────────────
-  Stream<List<Module>> getModules(String userId) {
-    return _db
-        .collection('modules')
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .map((s) => s.docs.map((d) => Module.fromDoc(d)).toList());
-  }
-
-  Future<void> addModule(Module module) =>
-      _db.collection('modules').add(module.toMap());
-
-  Future<void> updateModule(String id, String name) =>
-      _db.collection('modules').doc(id).update({'name': name});
-
-  Future<void> deleteModule(String id) =>
-      _db.collection('modules').doc(id).delete();
-
-  // ── Exams ─────────────────────────────────────────────────────────────────────
-  Stream<List<Exam>> getExams(String userId) {
-    return _db
-        .collection('exams')
-        .where('userId', isEqualTo: userId)
-        .orderBy('examDate')
-        .snapshots()
-        .map((s) => s.docs.map((d) => Exam.fromDoc(d)).toList());
-  }
-
-  Future<DocumentReference> addExam(Exam exam) =>
-      _db.collection('exams').add(exam.toMap());
-
-  Future<void> updateExam(String id, Map<String, dynamic> data) =>
-      _db.collection('exams').doc(id).update(data);
-
-  Future<void> deleteExam(String id) =>
-      _db.collection('exams').doc(id).delete();
-
   // ── Study Tasks ───────────────────────────────────────────────────────────────
   Stream<List<StudyTask>> getTodayTasks(String userId) {
     final now = DateTime.now();
@@ -84,20 +47,6 @@ class FirestoreService {
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map((s) => s.docs.length);
-  }
-
-  // ── Dashboard Stats ───────────────────────────────────────────────────────────
-  Future<Map<String, int>> getDashboardStats(String userId) async {
-    final modules = await _db.collection('modules').where('userId', isEqualTo: userId).get();
-    final exams = await _db.collection('exams').where('userId', isEqualTo: userId).get();
-    final tasks = await _db.collection('tasks').where('userId', isEqualTo: userId).where('completed', isEqualTo: true).get();
-    final sessions = await _db.collection('pomodoro_sessions').where('userId', isEqualTo: userId).get();
-    return {
-      'modules': modules.docs.length,
-      'exams': exams.docs.length,
-      'completedTasks': tasks.docs.length,
-      'sessions': sessions.docs.length,
-    };
   }
 
   // Store AI study plan tasks for an exam
